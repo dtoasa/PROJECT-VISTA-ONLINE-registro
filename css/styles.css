@@ -11,63 +11,30 @@ body { background: var(--bg); padding-top: 70px; }
 /* TITULOS */
 .section-title { text-align: center; margin: 20px 0 15px; color: #333; font-size: 1.5rem; font-weight: bold; }
 
-/* CARRUSEL REPARADO */
+/* CARRUSEL ESTÁNDAR */
 .carousel-container { 
-    position: relative; 
-    overflow: hidden; 
-    height: 350px; 
-    width: 90%; 
-    max-width: 1000px; 
-    margin: 0 auto 30px auto; 
-    border-radius: 12px;
-    background: #000; 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    position: relative; overflow: hidden; height: 350px; width: 90%; max-width: 1000px; 
+    margin: 0 auto 30px auto; border-radius: 12px; background: #000; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 .carousel-track { display: flex; transition: transform 0.5s ease-in-out; height: 100%; width: 100%; }
-.slide { 
-    min-width: 100%; 
-    height: 100%; 
-    object-fit: cover; /* Cambiado a cover para que llene el espacio sin dejar huecos */
-}
-
+.slide { min-width: 100%; width: 100%; height: 100%; object-fit: contain; flex-shrink: 0; background: #000; }
 .carousel-btn {
     position: absolute; top: 50%; transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(8px);
     color: white; border: none; padding: 20px 12px; cursor: pointer; font-size: 24px; z-index: 10;
 }
 .prev { left: 0; border-radius: 0 8px 8px 0; }
 .next { right: 0; border-radius: 8px 0 0 8px; }
 
-/* LISTA DE PRODUCTOS (IMÁGENES PEQUEÑAS REPARADAS) */
+/* PRODUCTOS TIENDA */
 .product-vertical-list { display: flex; flex-direction: column; gap: 15px; padding: 0 5%; margin-bottom: 50px; }
-.product-item { 
-    display: flex; 
-    background: white; 
-    padding: 12px; 
-    border-radius: 12px; 
-    align-items: center; 
-    gap: 15px; 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
-}
-.product-item img { 
-    width: 90px; /* Tamaño fijo para que siempre se vean */
-    height: 90px; 
-    object-fit: contain; 
-    background: #f9f9f9;
-    border-radius: 8px;
-}
-.product-info h3 { font-size: 16px; color: #232f3e; margin-bottom: 5px; }
-.product-info p { font-size: 18px; color: #b12704; font-weight: bold; }
+.product-item { display: flex; background: white; padding: 12px; border-radius: 12px; align-items: center; gap: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.product-item img { width: 90px; height: 90px; object-fit: contain; background: #f9f9f9; border-radius: 8px; }
 
-/* MODAL AUTH */
-.auth-modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
-.auth-content { background: white; margin: 15% auto; padding: 30px; width: 90%; max-width: 380px; border-radius: 15px; position: relative; text-align: center; }
-.close-auth { position: absolute; top: 10px; right: 20px; font-size: 28px; cursor: pointer; }
-.auth-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+/* ADMIN - MINIATURAS */
+.admin-preview-img { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 1px solid #ddd; }
+.admin-card { display: flex; align-items: center; gap: 15px; background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee; }
+
+/* INPUTS Y BOTONES */
+.auth-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
 .btn-celeste { background: #3498db; color: white; border: none; padding: 12px; width: 100%; cursor: pointer; border-radius: 8px; font-weight: bold; }
-
-/* RESPONSIVO */
-@media (max-width: 768px) {
-    .carousel-container { height: 220px; width: 95%; }
-    .product-item img { width: 70px; height: 70px; }
-}
