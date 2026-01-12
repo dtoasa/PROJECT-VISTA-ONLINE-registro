@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Amazonas</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Amazonas Admin</div>
+        <ul class="nav-menu">
+            <li><a href="index.html">Volver a Tienda</a></li>
+        </ul>
+    </nav>
+
+    <div class="admin-wrapper">
+        <div id="login-container" style="display: block; margin: 80px auto; max-width: 320px; text-align: center; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <h2 style="margin-bottom: 20px;">🔐 Acceso Admin</h2>
+            <div style="position: relative; margin-bottom: 20px;">
+                <input type="password" id="pass-input" placeholder="Clave Maestra" class="auth-input" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;">
+                <span id="toggle-pass" onclick="window.toggleOjo()" style="position: absolute; right: 12px; top: 10px; cursor: pointer; font-size: 22px; user-select: none; z-index: 10;">👁️</span>
+            </div>
+            <button onclick="window.validarAcceso()" class="btn-celeste" style="width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Entrar (o pulsa Enter)</button>
+        </div>
+
+        <div id="admin-content" style="display: none; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h3>Panel de Administración</h3>
+                <button onclick="window.logout()" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer;">Cerrar Sesión</button>
+            </div>
+            
+            <section style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+                <h4>Gestión de Banners (Carrusel)</h4>
+                <input type="text" id="url-dest" placeholder="Pegar URL de Cloudinary" class="auth-input" style="width: 100%; margin: 10px 0; padding: 10px;">
+                <button onclick="window.subirDestacadoLink()" class="btn-celeste">Agregar Banner</button>
+                <div id="admin-destacados" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;"></div>
+            </section>
+
+            <section style="background: white; padding: 20px; border-radius: 12px;">
+                <h4>Gestión de Productos</h4>
+                <input type="text" id="url-cat" placeholder="URL de la Imagen" class="auth-input" style="width: 100%; margin: 5px 0;">
+                <input type="text" id="prod-desc" placeholder="Nombre del Producto" class="auth-input" style="width: 100%; margin: 5px 0;">
+                <input type="text" id="prod-price" placeholder="Precio ($)" class="auth-input" style="width: 100%; margin: 5px 0;">
+                <button onclick="window.guardarCatalogoLink()" style="width: 100%; padding: 12px; background: #f39c12; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px;">Publicar Producto</button>
+                
+                <div id="admin-catalogo" style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 10px;"></div>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
