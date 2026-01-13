@@ -3,51 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amazonas | Inicio</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Amazonas | Tienda Natural</title>
+    <link rel="stylesheet" href="css/index-styles.css">
 </head>
 <body>
     <nav class="navbar">
         <div class="logo">Amazonas</div>
+        <div id="user-status-nav"></div>
+        
         <button class="menu-toggle" id="mobile-menu">
             <span class="bar"></span>
             <span class="bar"></span>
             <span class="bar"></span>
         </button>
+
         <ul class="nav-menu" id="nav-list">
             <li><a href="index.html">Inicio</a></li>
-            <li id="auth-option"><a href="javascript:void(0)" onclick="abrirModalAuth()">Registro / Login</a></li>
-            <li id="user-display" style="display:none; color: #febd69; font-weight: bold; padding: 0 15px;"></li>
-            <li><a href="galeria.html">Admin</a></li>
+            <li><a href="galeria.html">Administrar</a></li>
         </ul>
     </nav>
 
-    <div id="auth-modal" class="auth-modal">
-        <div class="auth-content">
-            <span class="close-auth" onclick="cerrarModalAuth()">&times;</span>
-            <h2 style="margin-bottom: 20px;">Registro / Login</h2>
-            <input type="email" id="auth-email" placeholder="Tu Correo" class="auth-input">
-            <input type="password" id="auth-pass" placeholder="Tu Contraseña" class="auth-input">
-            <button onclick="manejarAuth()" class="btn-celeste">Entrar o Registrarse</button>
-            <p style="font-size: 12px; color: #666; margin-top: 15px;">Si no tienes cuenta, se creará una automáticamente.</p>
-        </div>
-    </div>
-
-    <main class="main-content">
-        <h2 class="section-title">Productos Destacados</h2>
-        
+    <main>
         <div class="carousel-container">
             <div id="index-gallery" class="carousel-track"></div>
-            <button class="carousel-btn prev" onclick="moverCarrusel(-1)">&#10094;</button>
-            <button class="carousel-btn next" onclick="moverCarrusel(1)">&#10095;</button>
+            <button class="carousel-btn prev" onclick="mover(-1)">&#10094;</button>
+            <button class="carousel-btn next" onclick="mover(1)">&#10095;</button>
         </div>
-        
+
+        <h2 class="section-title">Productos Amazonas</h2>
         <div id="product-list" class="product-vertical-list"></div>
+
+        <section id="auth-section" class="registration-section">
+            <div class="auth-wrapper">
+                <div class="registration-card">
+                    <h3>Ingresar</h3>
+                    <form onsubmit="loginCliente(event)">
+                        <input type="email" id="login-email" placeholder="Correo" required>
+                        <input type="password" id="login-pass" placeholder="Contraseña" required>
+                        <button type="submit" class="btn-celeste">Entrar</button>
+                    </form>
+                </div>
+                <div class="registration-card">
+                    <h3>Crear Cuenta</h3>
+                    <form onsubmit="registrarCliente(event)">
+                        <input type="text" id="reg-nombre" placeholder="Nombre completo" required>
+                        <input type="email" id="reg-email" placeholder="Correo" required>
+                        <input type="password" id="reg-pass" placeholder="Contraseña" required>
+                        <button type="submit" class="btn-save">Registrarme</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section id="profile-section" class="registration-section" style="display:none;">
+            <div class="registration-card" style="max-width: 400px; margin: 0 auto;">
+                <h2 id="welcome-name"></h2>
+                <button onclick="logoutGeneral()" class="btn-logout" style="width:100%; margin-top:20px;">Cerrar Sesión</button>
+            </div>
+        </section>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="js/script.js"></script>
+
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/61e8c3cef7cf527e84d30e97/1fpqjpnr7';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
 </body>
 </html>

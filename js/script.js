@@ -7,96 +7,152 @@ const firebaseConfig = {
     appId: "1:214806360310:web:833918e79d20722f913cd7"
 };
 
-if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = (typeof firebase.auth === "function") ? firebase.auth() : null;
 
-// --- ACCESO ---
-window.toggleOjo = function() {
-    const input = document.getElementById('pass-input');
-    const ojo = document.getElementById('toggle-pass');
-    if (input.type === "password") {
-        input.type = "text"; ojo.innerText = "🔒";
-    } else {
-        input.type = "password"; ojo.innerText = "👁️";
+let totalFotos = 0, curSlide = 0;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Hamburguesa Animada
+    const menuBtn = document.getElementById('mobile-menu');
+    const navList = document.getElementById('nav-list');
+    if (menuBtn) {
+        menuBtn.onclick = () => {
+            menuBtn.classList.toggle('is-active');
+            navList.classList.toggle('active');
+        };
     }
-};
 
-window.validarAcceso = function() {
-    const pass = document.getElementById('pass-input').value;
-    if (pass === "1234") {
-        sessionStorage.setItem("adminOk", "true");
-        window.location.reload();
-    } else { alert("Clave Incorrecta"); }
-};
-
-window.logout = function() {
-    sessionStorage.removeItem("adminOk");
-    window.location.reload();
-};
-
-document.addEventListener('DOMContentLoaded', function() {
+    // SOPORTE PARA ENTER EN ADMIN
     const passInput = document.getElementById('pass-input');
     if (passInput) {
-        passInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') window.validarAcceso(); });
+        passInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                validarAcceso();
+            }
+        });
     }
 
-    if (sessionStorage.getItem("adminOk") === "true") {
-        if(document.getElementById('login-container')) document.getElementById('login-container').style.display = "none";
-        if(document.getElementById('admin-content')) document.getElementById('admin-content').style.display = "block";
+    // Verificar si ya es admin
+    if (window.location.pathname.includes("galeria.html")) {
+        if (sessionStorage.getItem("adminAuth") === "true") {
+            document.getElementById('login-container').style.display = "none";
+            document.getElementById('admin-content').style.display = "block";
+            cargarListaUsuarios();
+        }
+    }
+
+    // Auth Clientes
+    if (auth) {
+        auth.onAuthStateChanged(user => {
+            const authSec = document.getElementById('auth-section');
+            const profSec = document.getElementById('profile-section');
+            if (user) {
+                if(authSec) authSec.style.display = "none";
+                if(profSec) profSec.style.display = "block";
+                if(document.getElementById('welcome-name')) document.getElementById('welcome-name').innerText = "Hola, " + user.email;
+            } else {
+                if(authSec) authSec.style.display = "block";
+                if(profSec) profSec.style.display = "none";
+            }
+        });
     }
     escucharBaseDatos();
 });
 
-function escucharBaseDatos() {
-    // Carrusel
-    db.collection("carrusel").orderBy("fecha", "desc").onSnapshot(snap => {
-        const track = document.getElementById('index-gallery');
-        const admDest = document.getElementById('admin-destacados');
-        let hT = "", hA = "";
-        snap.forEach(doc => {
-            hT += `<img src="${doc.data().url}" class="slide">`;
-            hA += `<div style="display:inline-block; position:relative; margin:5px;">
-                <img src="${doc.data().url}" class="admin-preview-img">
-                <button onclick="borrarD('${doc.id}')" style="position:absolute; top:0; right:0; background:red; color:white; border-radius:50%; border:none; cursor:pointer;">×</button>
-            </div>`;
-        });
-        if (track) { track.innerHTML = hT; iniciarAutoCarrusel(); }
-        if (admDest) admDest.innerHTML = hA;
-    });
-
-    // Productos
-    db.collection("productos").orderBy("fecha", "desc").onSnapshot(snap => {
-        const list = document.getElementById('product-list');
-        const admProd = document.getElementById('admin-catalogo');
-        let hT = "", hA = "";
-        snap.forEach(doc => {
-            const i = doc.data();
-            hT += `<div class="product-item"><img src="${i.img}"><div class="product-info"><h3>${i.desc}</h3><p>$${i.price}</p>${i.stock === 'Agotado' ? '<b style="color:red">Agotado</b>' : ''}</div></div>`;
-            hA += `<div class="admin-card"><img src="${i.img}" class="admin-preview-img"><span>${i.desc}</span><button onclick="cambiarStock('${doc.id}','${i.stock}')">${i.stock || 'Stock'}</button><button onclick="borrarC('${doc.id}')" style="color:red;">🗑️</button></div>`;
-        });
-        if (list) list.innerHTML = hT;
-        if (admProd) admProd.innerHTML = hA;
-    });
-}
-
-let indiceActual = 0;
-let carruselInterval;
-function iniciarAutoCarrusel() { clearInterval(carruselInterval); carruselInterval = setInterval(() => moverCarrusel(1), 5000); }
-window.moverCarrusel = function(dir) {
-    const track = document.getElementById('index-gallery');
-    const slides = document.querySelectorAll('.slide');
-    if(track && slides.length > 0) {
-        indiceActual = (indiceActual + dir + slides.length) % slides.length;
-        track.style.transform = `translateX(-${indiceActual * 100}%)`;
+// ACCESO
+window.validarAcceso = () => {
+    const input = document.getElementById('pass-input');
+    if(input.value === "1980") {
+        sessionStorage.setItem("adminAuth", "true");
+        location.reload();
+    } else { 
+        alert("Clave incorrecta"); 
+        input.value = "";
     }
 };
 
-window.subirDestacadoLink = async () => { const u = document.getElementById('url-dest').value; if(u) await db.collection("carrusel").add({url:u, fecha:Date.now()}); document.getElementById('url-dest').value = ""; };
-window.guardarCatalogoLink = async () => {
-    const i = document.getElementById('url-cat').value, d = document.getElementById('prod-desc').value, p = document.getElementById('prod-price').value;
-    if(i && d && p) await db.collection("productos").add({img:i, desc:d, price:p, stock:"En Stock", fecha:Date.now()});
-    document.getElementById('url-cat').value = ""; document.getElementById('prod-desc').value = ""; document.getElementById('prod-price').value = "";
+window.logoutAdmin = () => { sessionStorage.removeItem("adminAuth"); location.reload(); };
+
+// DATA
+function escucharBaseDatos() {
+    db.collection("carrusel").orderBy("fecha", "desc").onSnapshot(snap => {
+        const fotos = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        totalFotos = fotos.length;
+        const track = document.getElementById('index-gallery');
+        if (track) track.innerHTML = fotos.map(f => `<img src="${f.url}">`).join('');
+        const adminD = document.getElementById('admin-destacados');
+        if (adminD) adminD.innerHTML = fotos.map(f => `<div class="img-card"><img src="${f.url}"><button class="delete-btn" onclick="borrarD('${f.id}')">×</button></div>`).join('');
+    });
+
+    db.collection("productos").orderBy("fecha", "desc").onSnapshot(snap => {
+        const list = document.getElementById('product-list');
+        if (list) list.innerHTML = snap.docs.map(doc => {
+            const p = doc.data();
+            return `<div class="product-item">
+                <img src="${p.img}">
+                <div style="flex-grow:1"><h3>${p.desc}</h3><p class="product-price">${p.price}</p></div>
+            </div>`;
+        }).join('');
+        const adminC = document.getElementById('admin-catalogo');
+        if (adminC) adminC.innerHTML = snap.docs.map(doc => {
+            const p = doc.data();
+            return `<div class="img-card">
+                <img src="${p.img}"><button class="status-badge ${p.stock==='En Stock'?'is-stock':'is-out'}" onclick="cambiarStock('${doc.id}','${p.stock}')">${p.stock}</button>
+                <button class="delete-btn" onclick="borrarC('${doc.id}')">×</button>
+            </div>`;
+        }).join('');
+    });
+}
+
+function cargarListaUsuarios() {
+    db.collection("usuarios").orderBy("fechaRegistro", "desc").onSnapshot(snap => {
+        const div = document.getElementById('lista-usuarios');
+        if (div) div.innerHTML = snap.docs.map(doc => `<p style="border-bottom:1px solid #ddd; padding:5px;">${doc.data().nombre} - ${doc.data().email}</p>`).join('');
+    });
+}
+
+window.mover = (dir) => {
+    const track = document.getElementById('index-gallery');
+    if (!track || totalFotos <= 1) return;
+    curSlide = (curSlide + dir + totalFotos) % totalFotos;
+    track.style.transform = `translateX(-${curSlide * 100}%)`;
 };
-window.borrarD = async id => { if(confirm("¿Borrar?")) await db.collection("carrusel").doc(id).delete(); };
-window.borrarC = async id => { if(confirm("¿Borrar?")) await db.collection("productos").doc(id).delete(); };
-window.cambiarStock = async (id, s) => { await db.collection("productos").doc(id).update({ stock: s === "Agotado" ? "En Stock" : "Agotado" }); };
+
+window.subirDestacadoLink = async () => {
+    const url = document.getElementById('url-dest').value;
+    if(url) await db.collection("carrusel").add({ url, fecha: Date.now() });
+};
+
+window.guardarCatalogoLink = async () => {
+    const img = document.getElementById('url-cat').value;
+    const desc = document.getElementById('prod-desc').value;
+    const price = document.getElementById('prod-price').value;
+    const stock = document.querySelector('input[name="stock"]:checked').value;
+    if(img && desc) await db.collection("productos").add({ img, desc, price, stock, fecha: Date.now() });
+};
+
+window.cambiarStock = async (id, s) => { await db.collection("productos").doc(id).update({ stock: s === "En Stock" ? "Agotado" : "En Stock" }); };
+window.borrarD = async (id) => { if(confirm("¿Borrar?")) await db.collection("carrusel").doc(id).delete(); };
+window.borrarC = async (id) => { if(confirm("¿Borrar?")) await db.collection("productos").doc(id).delete(); };
+
+window.registrarCliente = async (e) => {
+    e.preventDefault();
+    const em = document.getElementById('reg-email').value;
+    const ps = document.getElementById('reg-pass').value;
+    const nm = document.getElementById('reg-nombre').value;
+    try {
+        const res = await auth.createUserWithEmailAndPassword(em, ps);
+        await db.collection("usuarios").doc(res.user.uid).set({ nombre: nm, email: em, fechaRegistro: Date.now() });
+        alert("¡Registro exitoso!");
+    } catch (err) { alert(err.message); }
+};
+
+window.loginCliente = async (e) => {
+    e.preventDefault();
+    try { await auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-pass').value); } 
+    catch (err) { alert("Datos incorrectos"); }
+};
+window.logoutGeneral = () => auth.signOut();
