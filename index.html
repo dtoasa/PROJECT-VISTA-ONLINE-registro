@@ -3,81 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amazonas | Tienda Natural</title>
-    <link rel="stylesheet" href="css/index-styles.css">
+    <title>Amazonas | Tienda Oficial</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Asegura visibilidad inmediata */
+        .carousel-track img { min-width: 100%; height: 350px; object-fit: cover; display: block; }
+        .product-grid-small { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 20px; }
+        .p-card-small img { width: 100%; height: 150px; object-fit: contain; background: white; }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="logo">Amazonas</div>
-        <div id="user-status-nav"></div>
-        
-        <button class="menu-toggle" id="mobile-menu">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
-        </button>
-
-        <ul class="nav-menu" id="nav-list">
+        <ul class="nav-menu">
             <li><a href="index.html">Inicio</a></li>
-            <li><a href="galeria.html">Administrar</a></li>
+            <li><a href="galeria.html">Admin</a></li>
+            <li class="cart-icon-container" onclick="toggleCart()" style="list-style:none; position:relative; cursor:pointer; font-size:20px; color:white; margin-left:15px;">
+                🛒 <span id="cart-count" style="position:absolute; top:-8px; right:-10px; background:#febd69; color:#232f3e; font-size:12px; font-weight:bold; padding:2px 6px; border-radius:50%;">0</span>
+            </li>
         </ul>
     </nav>
 
-    <main>
-        <div class="carousel-container">
-            <div id="index-gallery" class="carousel-track"></div>
-            <button class="carousel-btn prev" onclick="mover(-1)">&#10094;</button>
-            <button class="carousel-btn next" onclick="mover(1)">&#10095;</button>
+    <div id="cart-dropdown" class="cart-dropdown">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #eee;">
+            <h3 style="margin:0;">Tu Carrito</h3>
+            <button onclick="toggleCart()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+        </div>
+        <div id="cart-items" class="cart-items-list" style="padding:15px;"></div>
+        <div class="cart-total" style="padding:15px; background:#f9f9f9;">
+            <strong>Total: <span id="cart-total-price">$0.00</span></strong>
+            <button class="btn-checkout" onclick="finalizarCompraLocal()" style="margin-top:10px;">Finalizar Pedido</button>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <div class="carousel-container" style="background:#ddd; height:350px; position:relative; overflow:hidden;">
+            <div id="index-gallery" class="carousel-track" style="display:flex; transition: 0.5s;">
+                </div>
+            <button class="carousel-btn prev" onclick="mover(-1)" style="position:absolute; left:10px; top:50%; z-index:10;">&#10094;</button>
+            <button class="carousel-btn next" onclick="mover(1)" style="position:absolute; right:10px; top:50%; z-index:10;">&#10095;</button>
         </div>
 
-        <h2 class="section-title">Productos Amazonas</h2>
-        <div id="product-list" class="product-vertical-list"></div>
-
-        <section id="auth-section" class="registration-section">
-            <div class="auth-wrapper">
-                <div class="registration-card">
-                    <h3>Ingresar</h3>
-                    <form onsubmit="loginCliente(event)">
-                        <input type="email" id="login-email" placeholder="Correo" required>
-                        <input type="password" id="login-pass" placeholder="Contraseña" required>
-                        <button type="submit" class="btn-celeste">Entrar</button>
-                    </form>
-                </div>
-                <div class="registration-card">
-                    <h3>Crear Cuenta</h3>
-                    <form onsubmit="registrarCliente(event)">
-                        <input type="text" id="reg-nombre" placeholder="Nombre completo" required>
-                        <input type="email" id="reg-email" placeholder="Correo" required>
-                        <input type="password" id="reg-pass" placeholder="Contraseña" required>
-                        <button type="submit" class="btn-save">Registrarme</button>
-                    </form>
-                </div>
+        <h2 style="text-align:center; margin:30px 0;">Catálogo de Productos</h2>
+        
+        <div id="product-list" class="product-grid-small">
             </div>
-        </section>
 
-        <section id="profile-section" class="registration-section" style="display:none;">
-            <div class="registration-card" style="max-width: 400px; margin: 0 auto;">
-                <h2 id="welcome-name"></h2>
-                <button onclick="logoutGeneral()" class="btn-logout" style="width:100%; margin-top:20px;">Cerrar Sesión</button>
+        <div class="auth-wrapper" style="display:flex; justify-content:center; gap:20px; padding:40px; background:#eee; flex-wrap:wrap;">
+            <div id="login-box" class="auth-box" style="background:white; padding:20px; border-radius:8px; width:280px;">
+                <h4>Entrar</h4>
+                <input type="email" id="login-email" placeholder="Email" style="width:100%; margin:10px 0; padding:8px;">
+                <input type="password" id="login-pass" placeholder="Clave" style="width:100%; margin:10px 0; padding:8px;">
+                <button onclick="handleLogin()" style="width:100%; background:#febd69; padding:10px; border:none; cursor:pointer;">Ingresar</button>
             </div>
-        </section>
+            <div id="register-box" class="auth-box" style="background:white; padding:20px; border-radius:8px; width:280px;">
+                <h4>Registro</h4>
+                <input type="email" id="reg-email" placeholder="Nuevo Email" style="width:100%; margin:10px 0; padding:8px;">
+                <input type="password" id="reg-pass" placeholder="Clave" style="width:100%; margin:10px 0; padding:8px;">
+                <button onclick="handleRegister()" style="width:100%; background:#3498db; color:white; padding:10px; border:none; cursor:pointer;">Crear Cuenta</button>
+            </div>
+            <div id="user-logged" style="display:none; text-align:center;">
+                <p id="user-mail"></p>
+                <button onclick="handleLogout()" style="background:#ff4757; color:white; padding:10px; border:none; cursor:pointer;">Cerrar Sesión</button>
+            </div>
+        </div>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="js/script.js"></script>
-
-    <script type="text/javascript">
-    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-    (function(){
-    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-    s1.async=true;
-    s1.src='https://embed.tawk.to/61e8c3cef7cf527e84d30e97/1fpqjpnr7';
-    s1.charset='UTF-8';
-    s1.setAttribute('crossorigin','*');
-    s0.parentNode.insertBefore(s1,s0);
-    })();
-    </script>
 </body>
 </html>

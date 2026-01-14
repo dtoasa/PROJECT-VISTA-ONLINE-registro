@@ -1,59 +1,48 @@
-:root { --primary: #232f3e; --accent: #3498db; --amazonas: #febd69; --success: #27ae60; --danger: #e74c3c; --bg: #f0f2f5; }
-* { margin:0; padding:0; box-sizing:border-box; font-family: sans-serif; list-style: none; }
-body { background: var(--bg); padding-top: 70px; }
+body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f0f2f5; }
 
-/* NAVBAR */
-.navbar { display:flex; justify-content:space-between; align-items:center; background:var(--primary); padding:0 5%; height:60px; position:fixed; top:0; width:100%; z-index:1000; }
-.logo { color:var(--amazonas); font-size:22px; font-weight:bold; }
-#user-status-nav { color:white; font-size:11px; display:none; }
-.nav-menu { display:flex; gap:15px; }
-.nav-menu a { color:white; text-decoration:none; font-weight: 500; }
-
-/* HAMBURGUESA ANIMADA */
-.menu-toggle { display: none; flex-direction: column; cursor: pointer; background: none; border: none; }
-.bar { width: 25px; height: 3px; background-color: white; margin: 3px 0; transition: 0.4s; border-radius: 2px; }
-
-/* Transformación a X */
-.is-active .bar:nth-child(1) { transform: translateY(9px) rotate(45deg); }
-.is-active .bar:nth-child(2) { opacity: 0; }
-.is-active .bar:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
-
-/* CONTENIDO */
-.carousel-container { position:relative; overflow:hidden; height:300px; margin:0 5% 20px; border-radius:15px; background:white; }
-.carousel-track { display:flex; transition:0.5s; height:100%; }
-.carousel-track img { width:100%; min-width:100%; object-fit:contain; }
-.carousel-btn { position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.3); color:white; border:none; padding:10px; cursor:pointer; }
-.next { right:0; } .prev { left:0; }
-
-.section-title { margin:20px 5%; border-left:5px solid var(--amazonas); padding-left:10px; }
-.product-vertical-list { padding:0 5%; display:flex; flex-direction:column; gap:12px; }
-.product-item { display:flex; background:white; padding:15px; border-radius:10px; align-items:center; gap:15px; box-shadow:0 2px 5px rgba(0,0,0,0.05); }
-.product-item img { width:80px; height:80px; object-fit:cover; border-radius:5px; }
-.product-price { color:var(--success); font-weight:bold; font-size:1.2rem; }
-.btn-wa { background:#25d366; color:white; padding:10px; border-radius:50%; text-decoration:none; }
-
-.registration-section { padding:40px 5%; background:#e9ecef; margin-top:30px; }
-.auth-wrapper { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; }
-.registration-card { background:white; padding:25px; border-radius:12px; flex:1; min-width:280px; max-width:400px; text-align:center; border-top: 5px solid var(--amazonas); }
-.registration-card input, .login-card input { width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:6px; }
-
-.btn-celeste { background:var(--accent); color:white; border:none; padding:12px; width:100%; border-radius:6px; cursor:pointer; font-weight:bold; }
-.btn-save { background:var(--amazonas); color:var(--primary); border:none; padding:12px; width:100%; border-radius:6px; cursor:pointer; font-weight:bold; }
-.btn-logout { background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; }
-
-.admin-panel { background:white; padding:20px; border-radius:15px; margin:20px 5%; }
-.gallery-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:10px; margin-top:15px; }
-.img-card { position:relative; aspect-ratio:1/1; border-radius:8px; overflow:hidden; border:1px solid #eee; }
-.img-card img { width:100%; height:100%; object-fit:cover; }
-.delete-btn { position:absolute; top:5px; right:5px; background:var(--danger); color:white; border-radius:50%; width:24px; height:24px; border:none; cursor:pointer; font-weight:bold; }
-.status-badge { position:absolute; bottom:5px; left:5px; right:5px; font-size:10px; padding:3px; border:none; color:white; border-radius:4px; cursor:pointer; }
-.is-stock { background:rgba(39,174,96,0.9); } .is-out { background:rgba(231,76,60,0.9); }
-.login-card { max-width:350px; margin:100px auto; background:white; padding:30px; border-radius:15px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.1); }
-
-@media (max-width: 768px) {
-    .menu-toggle { display: flex; }
-    .nav-menu { position: fixed; left: -100%; top: 60px; background: var(--primary); width: 100%; height: 100vh; flex-direction: column; align-items: center; padding-top: 50px; transition: 0.3s; }
-    .nav-menu.active { left: 0; }
-    .auth-wrapper { flex-direction:column; }
-    .product-item { flex-direction:column; text-align:center; }
+/* LOGIN */
+#login-container {
+    display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #232f3e; justify-content: center; align-items: center; z-index: 2000;
 }
+.login-card {
+    background: white; padding: 30px; border-radius: 12px; width: 280px; text-align: center;
+}
+.password-wrapper { position: relative; margin-bottom: 15px; }
+.password-wrapper input {
+    width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;
+    box-sizing: border-box; font-size: 16px; text-align: center;
+}
+#toggle-eye { position: absolute; right: 10px; top: 12px; cursor: pointer; font-size: 18px; }
+
+/* MINIATURAS (100x100) */
+.gallery-preview {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; justify-content: center;
+}
+.img-card {
+    position: relative; width: 100px; height: 100px;
+    border-radius: 8px; overflow: hidden; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.img-card img { width: 100%; height: 100%; object-fit: cover; }
+
+/* BOTÓN DE STOCK SOBRE IMAGEN */
+.status-badge {
+    position: absolute; bottom: 0; left: 0; width: 100%; border: none;
+    padding: 4px 0; font-size: 9px; font-weight: bold; text-align: center;
+    color: white; cursor: pointer; text-transform: uppercase;
+}
+.is-stock { background: rgba(39, 174, 96, 0.9); } /* Verde */
+.is-out { background: rgba(231, 76, 60, 0.9); }   /* Rojo */
+
+/* BOTÓN BORRAR */
+.delete-btn {
+    position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,0.6);
+    color: white; border: none; border-radius: 50%; width: 20px; height: 20px;
+    cursor: pointer; font-size: 12px;
+}
+
+/* OTROS */
+.section-card { background: white; padding: 20px; border-radius: 10px; margin: 15px; }
+.admin-header { background: #232f3e; color: white; padding: 15px; display: flex; justify-content: space-between; }
+.btn-main, .btn-save { background: #232f3e; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; }
+.btn-save { background: #27ae60; }

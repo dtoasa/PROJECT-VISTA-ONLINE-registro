@@ -3,50 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin | Amazonas</title>
-    <link rel="stylesheet" href="css/admin-styles.css">
+    <title>Amazonas | Admin</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Bloqueo de Pantalla */
+        #admin-lock {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #232f3e; z-index: 20000; display: flex;
+            justify-content: center; align-items: center;
+        }
+        .login-card {
+            background: white; padding: 30px; border-radius: 12px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 300px;
+        }
+        .pass-container { position: relative; margin: 15px 0; }
+        .pass-container input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        .eye-icon { position: absolute; right: 10px; top: 8px; cursor: pointer; font-size: 18px; }
+        
+        /* Estilos del Panel ya grabados */
+        .admin-section { margin-bottom: 50px; padding: 20px; background: #fff; border-radius: 12px; }
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .admin-card { background: #f8f9fa; border-radius: 8px; padding: 10px; position: relative; text-align: center; border: 1px solid #eee; }
+        .thumb-wrap { position: relative; width: 100%; height: 110px; margin-bottom: 8px; border-radius: 5px; overflow: hidden; background: #fff; }
+        .thumb-wrap img { width: 100%; height: 100%; object-fit: contain; }
+        .stock-toggle-btn { position: absolute; top: 5px; left: 5px; padding: 4px 8px; font-size: 10px; font-weight: bold; color: white; border: none; border-radius: 4px; cursor: pointer; z-index: 20; }
+        .btn-delete { background: #ff4757; color: white; border: none; padding: 6px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 11px; margin-top: 5px; }
+    </style>
 </head>
 <body>
-    <div id="login-container" class="login-card">
-        <h2>🔐 Acceso Maestro</h2>
-        <input type="password" id="pass-input" placeholder="Clave de Admin" autofocus>
-        <button onclick="validarAcceso()" class="btn-celeste">Entrar al Panel</button>
+    <div id="admin-lock">
+        <div class="login-card">
+            <h3 style="color: #232f3e;">Acceso Admin</h3>
+            <div class="pass-container">
+                <input type="password" id="admin-pass" placeholder="Ingresa la clave">
+                <span class="eye-icon" onclick="toggleEye()">👁️</span>
+            </div>
+            <button onclick="validarAcceso()" class="btn-login" style="width: 100%; padding: 10px; background: #febd69; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Entrar</button>
+        </div>
     </div>
 
-    <div id="admin-content" style="display: none;" class="admin-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-            <h1>Administración</h1>
-            <button onclick="logoutAdmin()" class="btn-logout">Cerrar Sesión</button>
+    <nav class="navbar">
+        <div class="logo">Amazonas Admin</div>
+        <ul class="nav-menu">
+            <li><a href="index.html">Ver Tienda</a></li>
+            <li><a href="galeria.html">Admin</a></li>
+        </ul>
+    </nav>
+
+    <main id="panel-content" style="padding: 20px; max-width: 1100px; margin: 0 auto; display: none;">
+        <div class="admin-section">
+            <h2>🎡 Carrusel Principal</h2>
+            <div class="auth-box" style="max-width: 500px; margin-bottom: 20px;">
+                <input type="text" id="c-img" placeholder="URL de imagen carrusel">
+                <button onclick="subirCarrusel()" class="btn-login" style="width:100%;">Agregar</button>
+            </div>
+            <div id="admin-carousel-list" class="admin-grid"></div>
         </div>
 
-        <section class="admin-section">
-            <h3>Subir al Carrusel</h3>
-            <input type="text" id="url-dest" placeholder="Enlace de imagen">
-            <button onclick="subirDestacadoLink()" class="btn-celeste">Publicar en Inicio</button>
-            <div id="admin-destacados" class="gallery-grid"></div>
-        </section>
-
-        <section class="admin-section">
-            <h3>Lista de Productos</h3>
-            <input type="text" id="url-cat" placeholder="URL imagen">
-            <input type="text" id="prod-desc" placeholder="Descripción">
-            <input type="text" id="prod-price" placeholder="Precio">
-            <div style="margin: 10px 0;">
-                <label><input type="radio" name="stock" value="En Stock" checked> Hay Stock</label>
-                <label style="margin-left:15px;"><input type="radio" name="stock" value="Agotado"> Agotado</label>
+        <div class="admin-section">
+            <h2>📦 Catálogo de Productos</h2>
+            <div class="auth-box" style="max-width: 500px; margin-bottom: 20px;">
+                <input type="text" id="p-desc" placeholder="Descripción">
+                <input type="number" id="p-price" placeholder="Precio ($)">
+                <input type="text" id="p-img" placeholder="URL de imagen">
+                <button onclick="subirProducto()" class="btn-register" style="width:100%;">Publicar</button>
             </div>
-            <button onclick="guardarCatalogoLink()" class="btn-save">Guardar Producto</button>
-            <div id="admin-catalogo" class="gallery-grid"></div>
-        </section>
-
-        <section class="admin-section">
-            <h3>Usuarios Registrados</h3>
-            <div id="lista-usuarios" style="background:#f9f9f9; padding:15px; border-radius:10px;"></div>
-        </section>
-    </div>
+            <div id="admin-product-list" class="admin-grid"></div>
+        </div>
+    </main>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="js/script.js"></script>
+    <script src="js/admin.js"></script>
 </body>
 </html>

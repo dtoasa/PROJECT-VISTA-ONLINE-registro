@@ -1,40 +1,83 @@
-:root { --primary: #232f3e; --accent: #3498db; --amazonas: #febd69; --success: #27ae60; --danger: #e74c3c; --bg: #f0f2f5; }
-* { margin:0; padding:0; box-sizing:border-box; font-family: sans-serif; list-style: none; }
-body { background: var(--bg); padding-top: 70px; }
-
-.navbar { display:flex; justify-content:space-between; align-items:center; background:var(--primary); padding:0 5%; height:60px; position:fixed; top:0; width:100%; z-index:1000; }
-.logo { color:var(--amazonas); font-size:22px; font-weight:bold; }
-.nav-menu { display:flex; gap:15px; }
-.nav-menu a { color:white; text-decoration:none; }
-
-.menu-toggle { display: none; flex-direction: column; cursor: pointer; background: none; border: none; }
-.bar { width: 25px; height: 3px; background-color: white; margin: 3px 0; transition: 0.4s; }
-.is-active .bar:nth-child(1) { transform: translateY(9px) rotate(45deg); }
-.is-active .bar:nth-child(2) { opacity: 0; }
-.is-active .bar:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
-
-.carousel-container { position:relative; overflow:hidden; height:300px; margin:0 5% 20px; border-radius:15px; background:white; }
-.carousel-track { display:flex; transition:0.5s; height:100%; }
-.carousel-track img { width:100%; min-width:100%; object-fit:contain; }
-.carousel-btn { position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.3); color:white; border:none; padding:15px 10px; cursor:pointer; }
-.next { right:0; } .prev { left:0; }
-
-.product-vertical-list { padding:0 5%; display:flex; flex-direction:column; gap:12px; }
-.product-item { display:flex; background:white; padding:15px; border-radius:10px; align-items:center; gap:15px; box-shadow:0 2px 5px rgba(0,0,0,0.05); }
-.product-item img { width:80px; height:80px; object-fit:cover; border-radius:5px; }
-
-.registration-section { padding:40px 5%; background:#e9ecef; margin-top:30px; }
-.auth-wrapper { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; }
-.registration-card { background:white; padding:25px; border-radius:12px; flex:1; min-width:280px; max-width:400px; text-align:center; }
-.registration-card input { width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:6px; }
-
-.btn-celeste { background:var(--accent); color:white; border:none; padding:12px; width:100%; border-radius:6px; cursor:pointer; font-weight:bold; }
-.btn-save { background:var(--amazonas); color:var(--primary); border:none; padding:12px; width:100%; border-radius:6px; cursor:pointer; font-weight:bold; }
-.btn-logout { background:var(--danger); color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; }
-
-@media (max-width: 768px) {
-    .menu-toggle { display: flex; }
-    .nav-menu { position: fixed; left: -100%; top: 60px; background: var(--primary); width: 100%; height: 100vh; flex-direction: column; align-items: center; padding-top: 50px; transition: 0.3s; }
-    .nav-menu.active { left: 0; }
-    .product-item { flex-direction: column; text-align: center; }
+/* --- HEADER Y NAVEGACIÓN --- */
+.main-header {
+    background: #232f3e;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
+
+.menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.menu-btn .bar {
+    width: 25px;
+    height: 3px;
+    background: white;
+    transition: 0.4s ease;
+}
+
+/* TRANSFORMACIÓN A X */
+.menu-btn.is-active .bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+.menu-btn.is-active .bar:nth-child(2) { opacity: 0; }
+.menu-btn.is-active .bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+.nav-links {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: #232f3e;
+    flex-direction: column;
+    padding: 20px;
+    z-index: 999;
+}
+
+.nav-links.active { display: flex !important; }
+
+/* --- CARRUSEL Y FLECHAS TRANSLÚCIDAS --- */
+.carousel-container {
+    position: relative;
+    width: 100%;
+    height: 350px;
+    overflow: hidden;
+    background: #000;
+}
+
+.carousel-track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.5s ease-in-out;
+}
+
+.slide { min-width: 100%; height: 100%; }
+.slide img { width: 100%; height: 100%; object-fit: cover; }
+
+.c-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 15px;
+    cursor: pointer;
+    z-index: 100;
+    border-radius: 5px;
+}
+.prev { left: 10px; }
+.next { right: 10px; }

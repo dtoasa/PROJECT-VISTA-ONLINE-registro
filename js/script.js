@@ -7,152 +7,139 @@ const firebaseConfig = {
     appId: "1:214806360310:web:833918e79d20722f913cd7"
 };
 
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const auth = (typeof firebase.auth === "function") ? firebase.auth() : null;
+const auth = firebase.auth();
 
-let totalFotos = 0, curSlide = 0;
+// Cargar carrito desde local o iniciar vacío
+let cart = JSON.parse(localStorage.getItem('amazonas_cart')) || [];
+let slideIdx = 0, slides = [], timer;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Hamburguesa Animada
-    const menuBtn = document.getElementById('mobile-menu');
-    const navList = document.getElementById('nav-list');
-    if (menuBtn) {
-        menuBtn.onclick = () => {
-            menuBtn.classList.toggle('is-active');
-            navList.classList.toggle('active');
-        };
-    }
+    updateCartUI();
 
-    // SOPORTE PARA ENTER EN ADMIN
-    const passInput = document.getElementById('pass-input');
-    if (passInput) {
-        passInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                validarAcceso();
-            }
-        });
-    }
-
-    // Verificar si ya es admin
-    if (window.location.pathname.includes("galeria.html")) {
-        if (sessionStorage.getItem("adminAuth") === "true") {
-            document.getElementById('login-container').style.display = "none";
-            document.getElementById('admin-content').style.display = "block";
-            cargarListaUsuarios();
+    // 1. CARGAR CARRUSEL
+    db.collection("carrusel").orderBy("fecha", "desc").onSnapshot(snap => {
+        const track = document.getElementById('index-gallery');
+        if (!track) return;
+        slides = snap.docs.map(doc => (doc.data().url || doc.data().img || "").trim());
+        if(slides.length > 0) {
+            track.innerHTML = slides.map(url => `<img src="${url}" onerror="this.src='https://via.placeholder.com/600x350?text=Error+de+Carga'">`).join('');
+            iniciarAuto();
         }
-    }
+    });
 
-    // Auth Clientes
-    if (auth) {
-        auth.onAuthStateChanged(user => {
-            const authSec = document.getElementById('auth-section');
-            const profSec = document.getElementById('profile-section');
-            if (user) {
-                if(authSec) authSec.style.display = "none";
-                if(profSec) profSec.style.display = "block";
-                if(document.getElementById('welcome-name')) document.getElementById('welcome-name').innerText = "Hola, " + user.email;
-            } else {
-                if(authSec) authSec.style.display = "block";
-                if(profSec) profSec.style.display = "none";
-            }
-        });
-    }
-    escucharBaseDatos();
+    // 2. CARGAR PRODUCTOS
+    db.collection("productos").orderBy("fecha", "desc").onSnapshot(snap => {
+        const grid = document.getElementById('product-list');
+        if(!grid) return;
+        grid.innerHTML = snap.docs.map(doc => {
+            const p = doc.data();
+            const imgUrl = (p.img || p.url || "").trim();
+            const esStock = p.stock === 'En Stock';
+            return `
+            <div class="p-card-small">
+                <div style="position:relative; width:100%; height:140px;">
+                    <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/150?text=Sin+Imagen'" style="width:100%; height:100%; object-fit:contain;">
+                </div>
+                <h4 style="font-size:12px; margin:10px 0; height:32px; overflow:hidden;">${p.desc}</h4>
+                <p style="color:#B12704; font-weight:bold;">$${p.price}</p>
+                ${esStock ? `<button onclick="addToCart('${p.desc}', '${p.price}', '${imgUrl}')" style="width:100%; background:#febd69; border:none; padding:7px; cursor:pointer; font-weight:bold; border-radius:4px; margin-top:5px;">🛒 Agregar</button>` : '<p style="color:red; font-size:11px; font-weight:bold; margin-top:10px;">AGOTADO</p>'}
+            </div>`;
+        }).join('');
+    });
 });
 
-// ACCESO
-window.validarAcceso = () => {
-    const input = document.getElementById('pass-input');
-    if(input.value === "1980") {
-        sessionStorage.setItem("adminAuth", "true");
-        location.reload();
-    } else { 
-        alert("Clave incorrecta"); 
-        input.value = "";
+// --- LÓGICA DE CARRITO MEJORADA ---
+
+window.toggleCart = () => document.getElementById('cart-dropdown').classList.toggle('active');
+
+window.addToCart = (desc, price, img) => {
+    // Buscar si el producto ya está en el carrito
+    const index = cart.findIndex(item => item.desc === desc);
+    
+    if (index !== -1) {
+        cart[index].qty += 1; // Si existe, suma 1 a la cantidad
+    } else {
+        cart.push({ desc, price: parseFloat(price), img, qty: 1 }); // Si no, lo agrega
     }
+    
+    updateCartUI();
+    document.getElementById('cart-dropdown').classList.add('active');
 };
 
-window.logoutAdmin = () => { sessionStorage.removeItem("adminAuth"); location.reload(); };
+window.changeQty = (index, delta) => {
+    cart[index].qty += delta;
+    
+    // Si la cantidad llega a 0, eliminar producto
+    if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+    }
+    
+    updateCartUI();
+};
 
-// DATA
-function escucharBaseDatos() {
-    db.collection("carrusel").orderBy("fecha", "desc").onSnapshot(snap => {
-        const fotos = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-        totalFotos = fotos.length;
-        const track = document.getElementById('index-gallery');
-        if (track) track.innerHTML = fotos.map(f => `<img src="${f.url}">`).join('');
-        const adminD = document.getElementById('admin-destacados');
-        if (adminD) adminD.innerHTML = fotos.map(f => `<div class="img-card"><img src="${f.url}"><button class="delete-btn" onclick="borrarD('${f.id}')">×</button></div>`).join('');
-    });
+function updateCartUI() {
+    localStorage.setItem('amazonas_cart', JSON.stringify(cart));
+    const container = document.getElementById('cart-items');
+    const totalEl = document.getElementById('cart-total-price');
+    const countEl = document.getElementById('cart-count');
+    
+    // Contar total de unidades (no solo de productos distintos)
+    const totalUnidades = cart.reduce((sum, item) => sum + item.qty, 0);
+    if(countEl) countEl.innerText = totalUnidades;
+    
+    let totalPrecio = 0;
 
-    db.collection("productos").orderBy("fecha", "desc").onSnapshot(snap => {
-        const list = document.getElementById('product-list');
-        if (list) list.innerHTML = snap.docs.map(doc => {
-            const p = doc.data();
-            return `<div class="product-item">
-                <img src="${p.img}">
-                <div style="flex-grow:1"><h3>${p.desc}</h3><p class="product-price">${p.price}</p></div>
+    if(container) {
+        container.innerHTML = cart.map((item, index) => {
+            totalPrecio += (item.price * item.qty);
+            return `
+            <div class="cart-item">
+                <img src="${item.img}" onerror="this.src='https://via.placeholder.com/50'">
+                <div class="item-info">
+                    <p>${item.desc}</p>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
+                        <span class="qty-num">${item.qty}</span>
+                        <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
+                    </div>
+                </div>
+                <div style="font-weight:bold; font-size:13px;">$${(item.price * item.qty).toFixed(2)}</div>
             </div>`;
         }).join('');
-        const adminC = document.getElementById('admin-catalogo');
-        if (adminC) adminC.innerHTML = snap.docs.map(doc => {
-            const p = doc.data();
-            return `<div class="img-card">
-                <img src="${p.img}"><button class="status-badge ${p.stock==='En Stock'?'is-stock':'is-out'}" onclick="cambiarStock('${doc.id}','${p.stock}')">${p.stock}</button>
-                <button class="delete-btn" onclick="borrarC('${doc.id}')">×</button>
-            </div>`;
-        }).join('');
-    });
+    }
+    if(totalEl) totalEl.innerText = `$${totalPrecio.toFixed(2)}`;
 }
 
-function cargarListaUsuarios() {
-    db.collection("usuarios").orderBy("fechaRegistro", "desc").onSnapshot(snap => {
-        const div = document.getElementById('lista-usuarios');
-        if (div) div.innerHTML = snap.docs.map(doc => `<p style="border-bottom:1px solid #ddd; padding:5px;">${doc.data().nombre} - ${doc.data().email}</p>`).join('');
-    });
-}
+window.finalizarCompraLocal = () => {
+    if(cart.length === 0) return alert("Carrito vacío");
+    alert("¡Pedido realizado con éxito!");
+    cart = [];
+    updateCartUI();
+    toggleCart();
+};
 
-window.mover = (dir) => {
+// --- CARRUSEL Y AUTH (SE MANTIENEN IGUAL) ---
+
+window.mover = (n) => {
     const track = document.getElementById('index-gallery');
-    if (!track || totalFotos <= 1) return;
-    curSlide = (curSlide + dir + totalFotos) % totalFotos;
-    track.style.transform = `translateX(-${curSlide * 100}%)`;
+    if(!track || slides.length === 0) return;
+    slideIdx = (slideIdx + n + slides.length) % slides.length;
+    track.style.transform = `translateX(-${slideIdx * 100}%)`;
 };
+function iniciarAuto() { clearInterval(timer); timer = setInterval(() => mover(1), 4000); }
 
-window.subirDestacadoLink = async () => {
-    const url = document.getElementById('url-dest').value;
-    if(url) await db.collection("carrusel").add({ url, fecha: Date.now() });
-};
-
-window.guardarCatalogoLink = async () => {
-    const img = document.getElementById('url-cat').value;
-    const desc = document.getElementById('prod-desc').value;
-    const price = document.getElementById('prod-price').value;
-    const stock = document.querySelector('input[name="stock"]:checked').value;
-    if(img && desc) await db.collection("productos").add({ img, desc, price, stock, fecha: Date.now() });
-};
-
-window.cambiarStock = async (id, s) => { await db.collection("productos").doc(id).update({ stock: s === "En Stock" ? "Agotado" : "En Stock" }); };
-window.borrarD = async (id) => { if(confirm("¿Borrar?")) await db.collection("carrusel").doc(id).delete(); };
-window.borrarC = async (id) => { if(confirm("¿Borrar?")) await db.collection("productos").doc(id).delete(); };
-
-window.registrarCliente = async (e) => {
-    e.preventDefault();
-    const em = document.getElementById('reg-email').value;
-    const ps = document.getElementById('reg-pass').value;
-    const nm = document.getElementById('reg-nombre').value;
-    try {
-        const res = await auth.createUserWithEmailAndPassword(em, ps);
-        await db.collection("usuarios").doc(res.user.uid).set({ nombre: nm, email: em, fechaRegistro: Date.now() });
-        alert("¡Registro exitoso!");
-    } catch (err) { alert(err.message); }
-};
-
-window.loginCliente = async (e) => {
-    e.preventDefault();
-    try { await auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-pass').value); } 
-    catch (err) { alert("Datos incorrectos"); }
-};
-window.logoutGeneral = () => auth.signOut();
+window.handleLogin = () => auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-pass').value).catch(e => alert(e.message));
+window.handleRegister = () => auth.createUserWithEmailAndPassword(document.getElementById('reg-email').value, document.getElementById('reg-pass').value).catch(e => alert(e.message));
+window.handleLogout = () => auth.signOut();
+auth.onAuthStateChanged(user => {
+    const l = document.getElementById('login-box'), r = document.getElementById('register-box'), u = document.getElementById('user-logged');
+    if(user) {
+        if(l) l.style.display='none'; if(r) r.style.display='none';
+        if(u) { u.style.display='block'; document.getElementById('user-mail').innerText = user.email; }
+    } else {
+        if(l) l.style.display='block'; if(r) r.style.display='block';
+        if(u) u.style.display='none';
+    }
+});
