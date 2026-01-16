@@ -15,27 +15,25 @@ let cart = [];
 let currentUser = null;
 let slideIdx = 0, slides = [], timer;
 
-// --- CONTROL DE SESIÓN Y CARRITO ---
+// --- CONTROL DE SESIÓN ---
 auth.onAuthStateChanged(user => {
     const l = document.getElementById('login-box'), r = document.getElementById('register-box'), u = document.getElementById('user-logged');
-    
     if(user) {
         currentUser = user;
-        // Cargar el carrito específico de este usuario
         cart = JSON.parse(localStorage.getItem('cart_' + user.uid)) || [];
         if(l) l.style.display='none'; if(r) r.style.display='none';
         if(u) { u.style.display='block'; document.getElementById('user-mail').innerText = user.email; }
     } else {
         currentUser = null;
-        cart = []; // Vaciar vista del carrito si no hay nadie
+        cart = [];
         if(l) l.style.display='block'; if(r) r.style.display='block';
         if(u) u.style.display='none';
     }
-    updateCartUI(); // Actualizar visualmente
+    updateCartUI();
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. CARGAR CARRUSEL
+    // Cargar Carrusel
     db.collection("carrusel").orderBy("fecha", "desc").onSnapshot(snap => {
         const track = document.getElementById('index-gallery');
         if (!track) return;
@@ -46,39 +44,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. CARGAR PRODUCTOS
+    // Cargar Productos
     db.collection("productos").orderBy("fecha", "desc").onSnapshot(snap => {
         const grid = document.getElementById('product-list');
         if(!grid) return;
         grid.innerHTML = snap.docs.map(doc => {
             const p = doc.data();
             const imgUrl = (p.img || p.url || "").trim();
-            const esStock = p.stock === 'En Stock';
             return `
             <div class="p-card-small" style="border:1px solid #eee; padding:10px; border-radius:8px; background:white; text-align:center;">
                 <img src="${imgUrl}" style="width:100%; height:140px; object-fit:contain;">
                 <h4 style="font-size:12px; margin:10px 0; height:32px; overflow:hidden;">${p.desc}</h4>
                 <p style="font-weight:bold;">$${p.price}</p>
-                ${esStock ? `<button onclick="addToCart('${p.desc}', '${p.price}', '${imgUrl}')" style="width:100%; background:#febd69; border:none; padding:7px; cursor:pointer; font-weight:bold; border-radius:4px;">🛒 Agregar</button>` : '<p style="color:red; font-size:11px;">AGOTADO</p>'}
+                <button onclick="addToCart('${p.desc}', '${p.price}', '${imgUrl}')" style="width:100%; background:#febd69; border:none; padding:7px; cursor:pointer; font-weight:bold; border-radius:4px;">🛒 Agregar</button>
             </div>`;
         }).join('');
     });
 });
 
-// --- FUNCIONES DEL CARRITO ---
+// --- LÓGICA DEL CARRITO ---
 window.addToCart = (desc, price, img) => {
     if (!currentUser) {
-        alert("Debes iniciar sesión o registrarte para poder comprar.");
-        document.getElementById('login-box').scrollIntoView({behavior: 'smooth'});
+        alert("Debes iniciar sesión para comprar.");
         return;
     }
-
     const index = cart.findIndex(item => item.desc === desc);
     if (index !== -1) { cart[index].qty += 1; } 
     else { cart.push({ desc, price: parseFloat(price), img, qty: 1 }); }
-    
     saveAndUpdate();
-    document.getElementById('cart-dropdown').classList.add('active');
 };
 
 window.changeQty = (index, delta) => {
@@ -88,9 +81,7 @@ window.changeQty = (index, delta) => {
 };
 
 function saveAndUpdate() {
-    if (currentUser) {
-        localStorage.setItem('cart_' + currentUser.uid, JSON.stringify(cart));
-    }
+    if (currentUser) localStorage.setItem('cart_' + currentUser.uid, JSON.stringify(cart));
     updateCartUI();
 }
 
@@ -99,53 +90,69 @@ function updateCartUI() {
     const totalEl = document.getElementById('cart-total-price');
     const countEl = document.getElementById('cart-count');
     
-    const totalUnidades = cart.reduce((sum, i) => sum + i.qty, 0);
-    if(countEl) countEl.innerText = totalUnidades;
+    if(countEl) countEl.innerText = cart.reduce((sum, i) => sum + i.qty, 0);
     
-    let totalDinero = 0;
+    let subtotal = 0;
     if(container) {
         if (cart.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:gray; font-size:13px; margin-top:20px;">
-                ${currentUser ? 'Tu carrito está vacío' : 'Inicia sesión para ver tu carrito'}
-            </p>`;
+            container.innerHTML = `<p style="text-align:center; color:gray; font-size:13px; margin-top:20px;">Carrito vacío</p>`;
         } else {
             container.innerHTML = cart.map((item, index) => {
-                totalDinero += (item.price * item.qty);
+                subtotal += (item.price * item.qty);
                 return `
                 <div style="display:flex; align-items:center; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
                     <img src="${item.img}" width="40" height="40" style="object-fit:contain;">
                     <div style="flex-grow:1; margin-left:10px; font-size:12px;">
                         ${item.desc}<br>
-                        <div style="display:flex; align-items:center; gap:8px; margin-top:5px;">
-                            <button onclick="changeQty(${index}, -1)">-</button>
-                            <b>${item.qty}</b>
-                            <button onclick="changeQty(${index}, 1)">+</button>
-                        </div>
+                        <button onclick="changeQty(${index}, -1)">-</button> <b>${item.qty}</b> <button onclick="changeQty(${index}, 1)">+</button>
                     </div>
                     <b>$${(item.price * item.qty).toFixed(2)}</b>
                 </div>`;
             }).join('');
         }
     }
-    if(totalEl) totalEl.innerText = `$${totalDinero.toFixed(2)}`;
+
+    // Cálculos de impuestos y totales
+    const descuento = 0.00; // Puedes cambiarlo si aplicas promos
+    const valorConDescuento = subtotal - descuento;
+    const iva = valorConDescuento * 0.12;
+    const totalFinal = valorConDescuento + iva;
+
+    if(totalEl) totalEl.innerText = `$${totalFinal.toFixed(2)}`;
+    
+    // Guardamos estos valores globalmente para usarlos en el alert de finalizar
+    window.lastCalculos = { subtotal, descuento, iva, totalFinal };
 }
 
-// --- RESTO DE FUNCIONES (RECUPERAR, CARRUSEL, LOGIN) ---
+window.finalizarCompraLocal = () => {
+    if(cart.length === 0) return alert("El carrito está vacío.");
+    
+    const { subtotal, descuento, iva, totalFinal } = window.lastCalculos;
+
+    const mensajeResumen = `--- RESUMEN DE TU PEDIDO ---
+Subtotal: $${subtotal.toFixed(2)}
+Descuento: -$${descuento.toFixed(2)}
+IVA (12%): $${iva.toFixed(2)}
+---------------------------
+TOTAL A PAGAR: $${totalFinal.toFixed(2)}
+
+¿Confirmar pedido?`;
+
+    if(confirm(mensajeResumen)) {
+        alert("¡Pedido realizado con éxito!");
+        cart = [];
+        saveAndUpdate();
+        toggleCart();
+    }
+};
+
+// --- OTROS ---
+window.toggleCart = () => document.getElementById('cart-dropdown').classList.toggle('active');
 window.recuperarClave = () => {
     const email = document.getElementById('login-email').value;
     if (!email) { alert("Escribe tu correo arriba."); return; }
     auth.sendPasswordResetEmail(email).then(() => alert("Correo enviado.")).catch(e => alert(e.message));
 };
-
-window.toggleCart = () => document.getElementById('cart-dropdown').classList.toggle('active');
-window.finalizarCompraLocal = () => {
-    if(cart.length === 0) return alert("Carrito vacío");
-    alert("¡Pedido realizado!");
-    cart = [];
-    saveAndUpdate();
-    toggleCart();
-};
-
 window.mover = (n) => {
     const track = document.getElementById('index-gallery');
     if(!track || slides.length === 0) return;
