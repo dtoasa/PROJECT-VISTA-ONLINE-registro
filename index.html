@@ -6,10 +6,11 @@
     <title>Amazonas | Tienda Oficial</title>
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        /* Asegura visibilidad inmediata */
         .carousel-track img { min-width: 100%; height: 350px; object-fit: cover; display: block; }
         .product-grid-small { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 20px; }
-        .p-card-small img { width: 100%; height: 150px; object-fit: contain; background: white; }
+        .p-card-small { border: 1px solid #eee; padding: 10px; border-radius: 8px; background: white; text-align: center; }
+        .cart-dropdown { position: fixed; top: 0; right: -350px; width: 320px; height: 100vh; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.2); transition: 0.3s; z-index: 20000; display: flex; flex-direction: column; }
+        .cart-dropdown.active { right: 0; }
     </style>
 </head>
 <body>
@@ -25,46 +26,49 @@
     </nav>
 
     <div id="cart-dropdown" class="cart-dropdown">
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #eee;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:20px; border-bottom:1px solid #eee;">
             <h3 style="margin:0;">Tu Carrito</h3>
             <button onclick="toggleCart()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
         </div>
-        <div id="cart-items" class="cart-items-list" style="padding:15px;"></div>
-        <div class="cart-total" style="padding:15px; background:#f9f9f9;">
-            <strong>Total: <span id="cart-total-price">$0.00</span></strong>
-            <button class="btn-checkout" onclick="finalizarCompraLocal()" style="margin-top:10px;">Finalizar Pedido</button>
+        <div id="cart-items" class="cart-items-list" style="flex-grow:1; overflow-y:auto; padding:20px;"></div>
+        <div class="cart-total" style="padding:20px; background:#f9f9f9; border-top:1px solid #eee;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold; font-size:18px;">
+                <span>Total:</span>
+                <span id="cart-total-price">$0.00</span>
+            </div>
+            <button class="btn-checkout" onclick="finalizarCompraLocal()" style="width:100%; padding:12px; background:#febd69; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Finalizar Pedido</button>
         </div>
     </div>
 
     <main class="main-content">
         <div class="carousel-container" style="background:#ddd; height:350px; position:relative; overflow:hidden;">
-            <div id="index-gallery" class="carousel-track" style="display:flex; transition: 0.5s;">
-                </div>
-            <button class="carousel-btn prev" onclick="mover(-1)" style="position:absolute; left:10px; top:50%; z-index:10;">&#10094;</button>
-            <button class="carousel-btn next" onclick="mover(1)" style="position:absolute; right:10px; top:50%; z-index:10;">&#10095;</button>
+            <div id="index-gallery" class="carousel-track" style="display:flex; transition: 0.5s;"></div>
+            <button class="carousel-btn prev" onclick="mover(-1)" style="position:absolute; left:10px; top:50%; z-index:10; background:rgba(0,0,0,0.3); color:white; border:none; border-radius:50%; width:40px; height:40px; cursor:pointer;">&#10094;</button>
+            <button class="carousel-btn next" onclick="mover(1)" style="position:absolute; right:10px; top:50%; z-index:10; background:rgba(0,0,0,0.3); color:white; border:none; border-radius:50%; width:40px; height:40px; cursor:pointer;">&#10095;</button>
         </div>
 
-        <h2 style="text-align:center; margin:30px 0;">Catálogo de Productos</h2>
-        
-        <div id="product-list" class="product-grid-small">
+        <h2 style="text-align:center; margin:40px 0 20px;">Explora Nuestros Productos</h2>
+        <div id="product-list" class="product-grid-small"></div>
+
+        <div class="auth-wrapper" style="display:flex; justify-content:center; gap:20px; padding:60px 5%; background:#eee; flex-wrap:wrap; margin-top:50px;">
+            <div id="login-box" style="background:white; padding:30px; border-radius:10px; width:300px;">
+                <h4>Ingresar</h4>
+                <input type="email" id="login-email" placeholder="Correo" style="width:100%; margin-bottom:10px; padding:10px;">
+                <input type="password" id="login-pass" placeholder="Clave" style="width:100%; margin-bottom:10px; padding:10px;">
+                <button onclick="handleLogin()" style="width:100%; background:#febd69; padding:10px; border:none; cursor:pointer; font-weight:bold;">Entrar</button>
+                <p style="font-size:11px; text-align:center; margin-top:15px;"><a href="javascript:void(0)" onclick="recuperarClave()">¿Olvidaste tu contraseña?</a></p>
             </div>
 
-        <div class="auth-wrapper" style="display:flex; justify-content:center; gap:20px; padding:40px; background:#eee; flex-wrap:wrap;">
-            <div id="login-box" class="auth-box" style="background:white; padding:20px; border-radius:8px; width:280px;">
-                <h4>Entrar</h4>
-                <input type="email" id="login-email" placeholder="Email" style="width:100%; margin:10px 0; padding:8px;">
-                <input type="password" id="login-pass" placeholder="Clave" style="width:100%; margin:10px 0; padding:8px;">
-                <button onclick="handleLogin()" style="width:100%; background:#febd69; padding:10px; border:none; cursor:pointer;">Ingresar</button>
+            <div id="register-box" style="background:white; padding:30px; border-radius:10px; width:300px;">
+                <h4>Registrarse</h4>
+                <input type="email" id="reg-email" placeholder="Correo" style="width:100%; margin-bottom:10px; padding:10px;">
+                <input type="password" id="reg-pass" placeholder="Clave" style="width:100%; margin-bottom:10px; padding:10px;">
+                <button onclick="handleRegister()" style="width:100%; background:#3498db; color:white; padding:10px; border:none; cursor:pointer; font-weight:bold;">Crear Cuenta</button>
             </div>
-            <div id="register-box" class="auth-box" style="background:white; padding:20px; border-radius:8px; width:280px;">
-                <h4>Registro</h4>
-                <input type="email" id="reg-email" placeholder="Nuevo Email" style="width:100%; margin:10px 0; padding:8px;">
-                <input type="password" id="reg-pass" placeholder="Clave" style="width:100%; margin:10px 0; padding:8px;">
-                <button onclick="handleRegister()" style="width:100%; background:#3498db; color:white; padding:10px; border:none; cursor:pointer;">Crear Cuenta</button>
-            </div>
-            <div id="user-logged" style="display:none; text-align:center;">
-                <p id="user-mail"></p>
-                <button onclick="handleLogout()" style="background:#ff4757; color:white; padding:10px; border:none; cursor:pointer;">Cerrar Sesión</button>
+
+            <div id="user-logged" style="display:none; text-align:center; background:white; padding:30px; border-radius:10px; width:300px;">
+                <p id="user-mail" style="font-weight:bold; margin-bottom:20px;"></p>
+                <button onclick="handleLogout()" style="background:#ff4757; color:white; padding:10px; border:none; width:100%; cursor:pointer;">Cerrar Sesión</button>
             </div>
         </div>
     </main>
@@ -73,5 +77,17 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="js/script.js"></script>
-</body>
+
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/61e8c3cef7cf527e84d30e97/1fpqjpnr7';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
+    </body>
 </html>
